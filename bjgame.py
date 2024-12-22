@@ -83,14 +83,22 @@ while True:
                     print(deck)
                     player_value = sum(10 if num in [11, 12, 13] else num for num in card_list)
                     
-                    
-                    
-                    
-                  
-                 
-
                 except ValueError:
                     card = "No Cards"
+            
+            if event.key == pygame.K_f:
+                for i in range():
+                    dealer_value = sum(10 if num in [11, 12, 13] else num for num in dealer_card_list)                    
+                    if dealer_value < 17:
+                        dealer_card_list.insert(i+1,d_card)
+
+                    
+
+
+
+
+
+
             if event.key == pygame.K_BACKSPACE:
                 deck = Deck(2)
                 card = None  
@@ -130,6 +138,9 @@ while True:
         if player_value > 21:
             busted_text = font3.render("BUSTED", True, (255, 0, 0))  
             screen.blit(busted_text, (380, 150))  
+
+        if dealer_value > 21:
+            
 
 
 
