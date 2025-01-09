@@ -166,7 +166,7 @@ while True:
                 card_list.pop(1)
                 card_count -= 1
 
-            if event.key == pygame.K_d and card_count < 2:
+            if event.key == pygame.K_d and card_count == 1:
                 card_count += 1
                 card = deck.draw_card()
                 card_list.insert(card_count,card)  
