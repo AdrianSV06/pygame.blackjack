@@ -51,8 +51,12 @@ stand = True
 soft = False
 d_soft = False
 player_value = 0
+split = False
+acc_split_c1 = False
+acc_split_c2 = False
 card_list = []
 dealer_card_list = []
+split_player_card_list = []
 player_balance = 1000
 card_display = {1: "A", 11: "J", 12: "Q", 13: "K"}
 start_text = font4.render("PRESS SPACE TO START", True, (255, 255, 255))  
@@ -70,50 +74,100 @@ while True:
                 try:              
                     start = False 
                     if player_value > 21 or stand == True:    
+                        #reset veriables and deck if nescesary
                         stand = False
                         soft = False
                         d_soft = False
+                        acc_split_c1 = False
+                        acc_split_c2 = False
                         if sum(deck.cards.values()) <= 20:
                             deck = Deck(2)  
+                        if split == True:
+                            s_d_card = dealer_card_list[0]
+                            s_player_value = sum(10 if num in [11, 12, 13] else 11 if num == 1 else num for num in card_list)
                         dealer_card_count = 0             
                         card_count = 0
                         card_list = []
                         dealer_card_list = []
+                        #draws dealer card
                         d_card = deck.draw_card()
                         dealer_card_list.insert(0,d_card)
+                        #checks if dealer soft
                         if 1 in dealer_card_list and sum(10 if num in [11, 12, 13] else 11 if num == 1 else num for num in dealer_card_list) < 22:
-                            d_soft = True              
+                            d_soft = True   
+                        #calculates dealer sum           
                         dealer_value = sum(10 if num in [11, 12, 13] else 11 if num == 1 else num for num in dealer_card_list)                  
-                        card = deck.draw_card()
-                        card_list.insert(card_count,card)   
+                        #draws first player card
+                        if split == False:
+                            card = deck.draw_card()
+                            card_list.insert(card_count,card)   
+                        if split == True:
+                            acc_split_c2 = True
+                            card_list.insert(card_count,s_card)
+                            split = False  
+                            dealer_card_list = []
+                            dealer_card_list.insert(0,s_d_card)   
+                            dealer_value = sum(10 if num in [11, 12, 13] else 11 if num == 1 else num for num in dealer_card_list) 
 
+                    
+                    #draws next player card
+                    
                     card_count += 1   
                     card = deck.draw_card()  
                     card_list.insert(card_count,card)
+                    temp_list = [10 if x in (11, 12, 13) else x for x in card_list]
+
+                    if len(card_list) < 3 and temp_list[0] == temp_list[1]:
+                        acc_split_c1 = True
+
+                    if acc_split_c2 == True:
+                        card_list.pop(-1)
+                        card_count -= 1
+                        acc_split_c2 = False
+                        acc_split_c1 = False
+                    
+                    #checks if player soft
                     if 1 in card_list and sum(10 if num in [11, 12, 13] else 11 if num == 1 else num for num in card_list) < 22:
                         soft = True
+                    #calculates player value
                     player_value = sum(10 if num in [11, 12, 13] else 11 if num == 1 else num for num in card_list)
+                    #checks if player over 21 and soft, if so, gives new value with ace = 1
                     if player_value > 21:
                         sum(10 if num in [11, 12, 13] else num for num in card_list)
-
+                
+                #if deck empty
                 except ValueError:
-                    card = "No Cards"    
-                               
-            if event.key == pygame.K_f:
-                if stand == False: 
-                    stand = True                   
-                    while dealer_value < 16:                      
-                        if 1 in dealer_card_list:
-                            d_soft = True   
-                        dealer_card_count += 1                   
-                        d_card = deck.draw_card()
-                        dealer_card_list.insert(dealer_card_count, d_card)
-                        dealer_value = sum(10 if num in [11, 12, 13] else 11 if num == 1 else num for num in dealer_card_list)
-                        if dealer_value > 21 and d_soft == True:
-                            d_soft = False
-                            dealer_value = sum(10 if num in [11, 12, 13] else num for num in dealer_card_list)
+                    card = "No Cards"  
+
+            #stand function                  
+            if event.key == pygame.K_f and stand == False:
+                stand = True
+                if split == True:
+                    break
+                #dealer draws untill 17 or higher                   
+                while dealer_value < 17:                      
+                    if 1 in dealer_card_list:
+                        d_soft = True   
+                    dealer_card_count += 1                   
+                    d_card = deck.draw_card()
+                    dealer_card_list.insert(dealer_card_count, d_card)
+                    dealer_value = sum(10 if num in [11, 12, 13] else 11 if num == 1 else num for num in dealer_card_list)
+                    #checks if dealer over 21 and soft, if so, gives new value with ace = 1
+                    if dealer_value > 21 and d_soft == True:
+                        d_soft = False
+                        dealer_value = sum(10 if num in [11, 12, 13] else num for num in dealer_card_list)
+
+            #split function
+            if event.key == pygame.K_s and acc_split_c1 == True and stand == False and split == False and acc_split_c2 == False:
+                acc_split_c2 = False
+                split = True
+                s_card = card_list[1]
+                card_list.pop(1)
+                card_count -= 1
 
 
+
+            #reset deck
             if event.key == pygame.K_BACKSPACE:
                 deck = Deck(2)
                 card = None  
@@ -121,25 +175,25 @@ while True:
                 card_count = 0
                 player_value = 22  
                 start = True
-                screen.blit(shuffle_text, (55, 200))
+                screen.blit(shuffle_text, (150, 200))
                 
 
     #graphics
     if start == False:
         screen.blit(background, (0, 0))
        
-        if card_count > 0:
-            for i in range(card_count+1):   
-                    place = 700 - 100 * i
-                    display_value = card_display.get(card_list[i], card_list[i])
-                    card_text = font1.render(str(display_value), True, (255, 255, 255))
-                    screen.blit(card_text, (place, 500)) 
+        
+        for i in range(card_count+1):   
+                place = 700 - 100 * i
+                display_value = card_display.get(card_list[i], card_list[i])
+                card_text = font1.render(str(display_value), True, (255, 255, 255))
+                screen.blit(card_text, (place, 500)) 
 
-            for i in range(dealer_card_count+1):   
-                    d_place = 700 - 100 * i
-                    d_display_value = card_display.get(dealer_card_list[i], dealer_card_list[i])
-                    dealer_text = font1.render(str(d_display_value), True, (255, 255, 255))
-                    screen.blit(dealer_text, (d_place, 300))  
+        for i in range(dealer_card_count+1):   
+                d_place = 700 - 100 * i
+                d_display_value = card_display.get(dealer_card_list[i], dealer_card_list[i])
+                dealer_text = font1.render(str(d_display_value), True, (255, 255, 255))
+                screen.blit(dealer_text, (d_place, 300))  
               
         deck_text = font2.render(str(deck), True, (255, 255, 255))  
         screen.blit(deck_text, (10, 20)) 
@@ -160,7 +214,7 @@ while True:
             soft = False
             player_value = sum(10 if num in [11, 12, 13] else num for num in card_list)
 
-        if d_soft == False and player_value > 21:
+        if soft == False and player_value > 21:
             busted_text = font3.render("BUSTED", True, (255, 0, 0))  
             screen.blit(busted_text, (380, 100))  
         
