@@ -77,6 +77,7 @@ while True:
                         #reset veriables and deck if nescesary
                         stand = False
                         soft = False
+                        double = False
                         d_soft = False
                         acc_split_c1 = False
                         acc_split_c2 = False
@@ -140,7 +141,7 @@ while True:
                     card = "No Cards"  
 
             #stand function                  
-            if event.key == pygame.K_f and stand == False:
+            if event.key == pygame.K_f and not stand:
                 stand = True
                 if split == True:
                     break
@@ -165,6 +166,31 @@ while True:
                 card_list.pop(1)
                 card_count -= 1
 
+            if event.key == pygame.K_d and card_count < 2:
+                card_count += 1
+                card = deck.draw_card()
+                card_list.insert(card_count,card)  
+                player_value = sum(10 if num in [11, 12, 13] else 11 if num == 1 else num for num in card_list)
+               
+
+                if sum(10 if num in [11, 12, 13] else num for num in card_list) < 22:
+                    
+                    stand = True
+
+                    if split == True:
+                        break
+                    #dealer draws untill 17 or higher                   
+                    while dealer_value < 17:                      
+                        if 1 in dealer_card_list:
+                            d_soft = True   
+                        dealer_card_count += 1                   
+                        d_card = deck.draw_card()
+                        dealer_card_list.insert(dealer_card_count, d_card)
+                        dealer_value = sum(10 if num in [11, 12, 13] else 11 if num == 1 else num for num in dealer_card_list)
+                        #checks if dealer over 21 and soft, if so, gives new value with ace = 1
+                        if dealer_value > 21 and d_soft == True:
+                            d_soft = False
+                            dealer_value = sum(10 if num in [11, 12, 13] else num for num in dealer_card_list)
 
 
             #reset deck
