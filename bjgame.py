@@ -318,6 +318,8 @@ while True:
     #graphics
     if start == False:
         screen.blit(background, (0, 0))
+        if player_balance < 0:
+            screen.fill("darkred")
        
         #player cards
         for i in range(card_count+1):   
